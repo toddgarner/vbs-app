@@ -1,14 +1,8 @@
-# Remix Indie Stack
+# Vacation Bible School App
 
-![The Remix Indie Stack](https://repository-images.githubusercontent.com/465928257/a241fa49-bd4d-485a-a2a5-5cb8e4ee0abf)
+![The VBS App](https://storage1.snappages.site/TPQ7FG/assets/images/5627515_3000x1546_500.jpg)
 
-Learn more about [Remix Stacks](https://remix.run/stacks).
-
-```sh
-npx create-remix@latest --template remix-run/indie-stack
-```
-
-## What's in the stack
+## What's in the stack (from Remix Indie Stack)
 
 - [Fly app deployment](https://fly.io) with [Docker](https://www.docker.com/)
 - Production-ready [SQLite Database](https://sqlite.org)
@@ -25,12 +19,6 @@ npx create-remix@latest --template remix-run/indie-stack
 - Static Types with [TypeScript](https://typescriptlang.org)
 
 Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own.
-
-## Quickstart
-
-Click this button to create a [Gitpod](https://gitpod.io) workspace with the project set up and Fly pre-installed
-
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/remix-run/indie-stack/tree/main)
 
 ## Development
 
