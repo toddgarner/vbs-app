@@ -26,6 +26,14 @@ export const action = async ({ request }: ActionArgs) => {
   const phone = formData.get("phone");
   const childId = formData.get("childId")?.toString() || "";
   const qrcode = formData.get("qrcode")?.toString() || "";
+  const dobForm = formData.get("dob")?.toString();
+  const medical = formData.get("medical")?.toString();
+
+  let dob;
+
+  if (dobForm) {
+    dob = new Date(dobForm);
+  }
 
   if (typeof registrant !== "string" || registrant.length === 0) {
     return json(
@@ -35,6 +43,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: "Registrant is required",
           age: null,
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -49,6 +58,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -61,6 +71,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -77,6 +88,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: "Age is required",
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -89,6 +101,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: "Age must be a number",
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -130,7 +143,9 @@ export const action = async ({ request }: ActionArgs) => {
     ageInt,
     phone,
     email,
-    qrcode
+    qrcode,
+    dob,
+    medical
   );
 
   return redirect(`/registrants/${child.id}`);
@@ -143,6 +158,8 @@ export default function NewNotePage() {
   const emailRef = useRef<HTMLTextAreaElement>(null);
   const ageRef = useRef<HTMLTextAreaElement>(null);
   const phoneRef = useRef<HTMLTextAreaElement>(null);
+  const dobRef = useRef<HTMLTextAreaElement>(null);
+  const medicalRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (actionData?.errors?.registrant) {
@@ -155,8 +172,6 @@ export default function NewNotePage() {
       phoneRef.current?.focus();
     }
   }, [actionData]);
-
-  console.log(registrantRef);
 
   return (
     <Form
@@ -212,7 +227,7 @@ export default function NewNotePage() {
 
       <div>
         <label className="flex w-16 flex-col gap-1">
-          <span>Age: </span>
+          <span>Grade: </span>
           <input
             ref={ageRef}
             name="age"
@@ -231,6 +246,29 @@ export default function NewNotePage() {
           </div>
         ) : null}
       </div>
+
+      <div>
+        <label className="flex w-64 flex-col gap-1">
+          <span>DOB: </span>
+          <input
+            ref={dobRef}
+            name="dob"
+            type="date"
+            defaultValue={data.child.dob.substring(0, 10)}
+            className="w-64 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            aria-invalid={actionData?.errors?.dob ? true : undefined}
+            aria-errormessage={
+              actionData?.errors?.age ? "dob-error" : undefined
+            }
+          />
+        </label>
+        {actionData?.errors?.dob ? (
+          <div className="pt-1 text-red-700" id="dob-error">
+            {actionData.errors.dob}
+          </div>
+        ) : null}
+      </div>
+
       <div>
         <label className="flex w-full flex-col gap-1">
           <span>Phone: </span>
@@ -250,6 +288,18 @@ export default function NewNotePage() {
             {actionData.errors.phone}
           </div>
         ) : null}
+      </div>
+
+      <div>
+        <label className="flex w-full flex-col gap-1">
+          <span>Medical Concerns: </span>
+          <input
+            ref={medicalRef}
+            defaultValue={data.child.medical}
+            name="medical"
+            className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+          />
+        </label>
       </div>
 
       <div className="text-right">

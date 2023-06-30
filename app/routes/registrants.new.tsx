@@ -15,6 +15,14 @@ export const action = async ({ request }: ActionArgs) => {
   const email = formData.get("email");
   const age = formData.get("age")?.toString() || undefined;
   const phone = formData.get("phone");
+  const dobForm = formData.get("dob")?.toString();
+  const medical = formData.get("medical")?.toString();
+
+  let dob;
+
+  if (dobForm) {
+    dob = new Date(dobForm);
+  }
 
   if (typeof registrant !== "string" || registrant.length === 0) {
     return json(
@@ -24,6 +32,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: "Registrant is required",
           age: null,
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -38,6 +47,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -50,6 +60,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -66,6 +77,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: "Age is required",
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -78,6 +90,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: "Age must be a number",
           phone: null,
+          dob: null,
         },
       },
       { status: 400 }
@@ -95,6 +108,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: "Phone is required",
+          dob: null,
         },
       },
       { status: 400 }
@@ -107,6 +121,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: "Phone is invalid",
+          dob: null,
         },
       },
       { status: 400 }
@@ -119,6 +134,8 @@ export const action = async ({ request }: ActionArgs) => {
     registrant,
     age: ageInt,
     userId,
+    dob,
+    medical,
     qrcode: "",
   });
 
@@ -135,6 +152,8 @@ export default function NewNotePage() {
   const emailRef = useRef<HTMLTextAreaElement>(null);
   const ageRef = useRef<HTMLTextAreaElement>(null);
   const phoneRef = useRef<HTMLTextAreaElement>(null);
+  const dobRef = useRef<HTMLTextAreaElement>(null);
+  const medicalRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (actionData?.errors?.registrant) {
@@ -200,7 +219,7 @@ export default function NewNotePage() {
 
       <div>
         <label className="flex w-16 flex-col gap-1">
-          <span>Age: </span>
+          <span>Grade: </span>
           <input
             ref={ageRef}
             name="age"
@@ -215,6 +234,27 @@ export default function NewNotePage() {
         {actionData?.errors?.age ? (
           <div className="pt-1 text-red-700" id="age-error">
             {actionData.errors.age}
+          </div>
+        ) : null}
+      </div>
+
+      <div>
+        <label className="flex w-64 flex-col gap-1">
+          <span>DOB: </span>
+          <input
+            ref={dobRef}
+            name="dob"
+            type="date"
+            className="w-64 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            aria-invalid={actionData?.errors?.dob ? true : undefined}
+            aria-errormessage={
+              actionData?.errors?.age ? "dob-error" : undefined
+            }
+          />
+        </label>
+        {actionData?.errors?.dob ? (
+          <div className="pt-1 text-red-700" id="dob-error">
+            {actionData.errors.dob}
           </div>
         ) : null}
       </div>
@@ -237,6 +277,17 @@ export default function NewNotePage() {
             {actionData.errors.phone}
           </div>
         ) : null}
+      </div>
+
+      <div>
+        <label className="flex w-full flex-col gap-1">
+          <span>Medical Concerns: </span>
+          <input
+            ref={medicalRef}
+            name="medical"
+            className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+          />
+        </label>
       </div>
 
       <div className="text-right">

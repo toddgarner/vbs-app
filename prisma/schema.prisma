@@ -45,6 +45,8 @@ model Child {
   age   Int
   email String
   phone String
+  dob DateTime
+  medical String
   qrcode String
 
   createdAt DateTime @default(now())

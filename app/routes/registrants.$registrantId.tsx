@@ -8,7 +8,7 @@ import {
   useRouteError,
 } from "@remix-run/react";
 import invariant from "tiny-invariant";
-import { sendQrCode } from "~/models/aws.server";
+import { sendQrCode, textQrCode } from "~/models/aws.server";
 
 import { deleteChild, getChild } from "~/models/registration.server";
 import { requireUserId } from "~/session.server";
@@ -30,7 +30,7 @@ export const action = async ({ params, request }: ActionArgs) => {
 
   const formData = await request.formData();
   const action = formData.get("_action");
-  // const phone = formData.get("phone")?.toString() || "";
+  const phone = formData.get("phone")?.toString() || "";
   const registrant = formData.get("registrant")?.toString() || "";
   const qrcode = formData.get("qrcode")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
@@ -39,7 +39,10 @@ export const action = async ({ params, request }: ActionArgs) => {
     await deleteChild({ id: params.registrantId, userId });
     return redirect("/registrants");
   } else if (action === "sendQrCode") {
-    await sendQrCode(email, "VBS", qrcode);
+    await sendQrCode(email, registrant, qrcode);
+    return redirect("/registrants");
+  } else if (action === "textQrCode") {
+    await textQrCode(phone, registrant);
     return redirect("/registrants");
   }
 };
@@ -50,9 +53,13 @@ export default function ChildDetailsPage() {
   return (
     <div>
       <h3 className="text-2xl font-bold">{data.child.registrant}</h3>
-      <p className="py-2">{data.child.email}</p>
-      <p className="py-2">{data.child.phone}</p>
-      <p className="py-2">Age: {data.child.age}</p>
+      <p className="py-2">Email: {data.child.email}</p>
+      <p className="py-2">Phone: {data.child.phone}</p>
+      <p className="py-2">Grade: {data.child.age}</p>
+      <p className="py-2">DOB: {data.child.dob.substring(0, 10)}</p>
+      <p className="py-2">
+        Medical concerns: {data.child.medical ? data.child.medical : "none"}
+      </p>
 
       <div className="mx-auto my-4 w-full pb-1">
         <img src={data.child.qrcode} alt={"child qr code"} />
@@ -76,7 +83,11 @@ export default function ChildDetailsPage() {
             value={data.child.registrant}
           />
           <input type="hidden" name="qrcode" value={data.child.qrcode} />
-          <input type="hidden" name="email" value={data.child.email} />
+          <input
+            type="hidden"
+            name="email"
+            value={data.child.email.toLowerCase()}
+          />
           <button
             type="submit"
             name="_action"
@@ -86,6 +97,22 @@ export default function ChildDetailsPage() {
             Send QR Code
           </button>
         </Form>
+        {/* <Form method="post">
+          <input type="hidden" name="phone" value={data.child.phone} />
+          <input
+            type="hidden"
+            name="registrant"
+            value={data.child.registrant}
+          />
+          <button
+            type="submit"
+            name="_action"
+            value="textQrCode"
+            className="mx-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+          >
+            Text QR Code
+          </button>
+        </Form> */}
       </div>
       <Form method="post">
         <button

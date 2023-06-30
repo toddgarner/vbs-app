@@ -1,5 +1,5 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-// import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
+import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { toFile, toString } from "qrcode";
 // import { log } from "~/models/log.server";
@@ -19,7 +19,7 @@ export const awsConfig = {
 };
 
 const s3Client = new S3Client(awsConfig);
-// const snsClient = new SNSClient(awsConfig);
+const snsClient = new SNSClient(awsConfig);
 const sesClient = new SESClient(awsConfig);
 
 export async function createQRCode(childId: string): Promise<string> {
@@ -83,46 +83,48 @@ export async function createQRCodeSVGForAppToken(
 }
 
 // !!! This will be for SMS when available !!!
+const vbsProvider = process.env.VBS_PROVIDER;
 
-// export async function sendQrCode(
-//   phoneNumber: string,
-//   registrant: string,
-//   qrcode: string
-// ): Promise<void> {
-//   phoneNumber = "+1" + phoneNumber.replace(/\D/g, "");
-//   const message = `Hi this is a message from New City Fellowship VBS. The link to ${registrant}'s QR code is here:`;
-//   console.log(message);
-//   try {
-//     const params = {
-//       Message: message,
-//       PhoneNumber: phoneNumber,
-//     };
-//     await snsClient.send(new PublishCommand(params));
-//     console.log("sent!");
-//   } catch (err) {
-//     console.log(err);
-//     // log.error(err);
-//     throw err;
-//   }
-// }
+export async function textQrCode(
+  phoneNumber: string,
+  registrant: string
+): Promise<void> {
+  phoneNumber = "+1" + phoneNumber.replace(/\D/g, "");
+  const message = `You have been registered for VBS at ${vbsProvider}. The link to ${registrant}'s QR code is here:`;
+  try {
+    const params = {
+      Message: message,
+      PhoneNumber: phoneNumber,
+    };
+    await snsClient.send(new PublishCommand(params));
+    console.log("sent!");
+  } catch (err) {
+    console.log(err);
+    // log.error(err);
+    throw err;
+  }
+}
 
 export async function sendQrCode(
   toEmail: string,
-  subject: string,
+  registrant: string,
   qrcode: string
 ): Promise<void> {
-  const fromEmail = "garners898@pm.me";
-  const message = `You have been registered for VBS. Below is a link to the QR code for check-in:
-   ${qrcode}`;
+  const fromEmail = process.env.EMAIL_FROM;
+  const replyTo = process.env.EMAIL_REPLY_TO;
+  const subject = process.env.EMAIL_SUBJECT || "";
+
+  const message = `You have been registered for VBS at ${vbsProvider}. Below is ${registrant}'s QR code for check-in:
+          ${qrcode}`;
 
   const htmlContent = `
-  <html>
-    <body>
-      <p>You have been registered for VBS. Below is the QR code for check-in:</p>
-      <img src=${qrcode} alt="Embedded Image">
-    </body>
-  </html>
-`;
+          <html>
+          <body>
+          <p>You have been registered for VBS at ${vbsProvider}. Below is ${registrant}'s QR code for check-in:</p>
+          <img src=${qrcode} alt="Embedded Image">
+          </body>
+          </html>
+          `;
 
   try {
     const params = {
@@ -147,7 +149,7 @@ export async function sendQrCode(
         },
       },
       Source: fromEmail,
-      ReplyToAddresses: [],
+      ReplyToAddresses: [replyTo],
     };
     await sesClient.send(new SendEmailCommand(params));
   } catch (err) {
