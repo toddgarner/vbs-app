@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionArgs, AppData, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
@@ -119,6 +119,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: "Phone is required",
+          dob: null,
         },
       },
       { status: 400 }
@@ -131,6 +132,7 @@ export const action = async ({ request }: ActionArgs) => {
           registrant: null,
           age: null,
           phone: "Phone is invalid",
+          dob: null,
         },
       },
       { status: 400 }
@@ -152,19 +154,19 @@ export const action = async ({ request }: ActionArgs) => {
 };
 
 export default function NewNotePage() {
-  const data = useLoaderData<LoaderData>();
+  const data = useLoaderData<AppData>();
   const actionData = useActionData<typeof action>();
-  const registrantRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLTextAreaElement>(null);
-  const ageRef = useRef<HTMLTextAreaElement>(null);
-  const phoneRef = useRef<HTMLTextAreaElement>(null);
-  const dobRef = useRef<HTMLTextAreaElement>(null);
-  const medicalRef = useRef<HTMLTextAreaElement>(null);
+  const registrantRef = useRef<HTMLInputElement>(null) as any;
+  const emailRef = useRef<HTMLTextAreaElement>(null) as any;
+  const ageRef = useRef<HTMLTextAreaElement>(null) as any;
+  const phoneRef = useRef<HTMLTextAreaElement>(null) as any;
+  const dobRef = useRef<HTMLTextAreaElement>(null) as any;
+  const medicalRef = useRef<HTMLTextAreaElement>(null) as any;
 
   useEffect(() => {
     if (actionData?.errors?.registrant) {
       registrantRef.current?.focus();
-    } else if (actionData?.errors?.body) {
+    } else if (actionData?.errors?.registrant) {
       emailRef.current?.focus();
     } else if (actionData?.errors?.age) {
       ageRef.current?.focus();

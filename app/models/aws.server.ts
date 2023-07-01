@@ -110,8 +110,8 @@ export async function sendQrCode(
   registrant: string,
   qrcode: string
 ): Promise<void> {
-  const fromEmail = process.env.EMAIL_FROM;
-  const replyTo = process.env.EMAIL_REPLY_TO;
+  const fromEmail = process.env.EMAIL_FROM || "";
+  const replyTo = process.env.EMAIL_REPLY_TO || "";
   const subject = process.env.EMAIL_SUBJECT || "";
 
   const message = `You have been registered for VBS at ${vbsProvider}. Below is ${registrant}'s QR code for check-in:

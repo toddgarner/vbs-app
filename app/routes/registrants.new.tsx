@@ -13,12 +13,12 @@ export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
   const registrant = formData.get("registrant");
   const email = formData.get("email");
-  const age = formData.get("age")?.toString() || undefined;
+  const age = formData.get("age")?.toString() || "";
   const phone = formData.get("phone");
-  const dobForm = formData.get("dob")?.toString();
-  const medical = formData.get("medical")?.toString();
+  const dobForm = formData.get("dob")?.toString() || "";
+  const medical = formData.get("medical")?.toString() || "";
 
-  let dob;
+  let dob = new Date();
 
   if (dobForm) {
     dob = new Date(dobForm);
@@ -141,24 +141,33 @@ export const action = async ({ request }: ActionArgs) => {
 
   const qrcode = await createQRCode(note.id);
 
-  await updateChild(note.id, registrant, ageInt, phone, email, qrcode);
+  await updateChild(
+    note.id,
+    registrant,
+    ageInt,
+    phone,
+    email,
+    qrcode,
+    dob,
+    medical
+  );
 
   return redirect(`/registrants/${note.id}`);
 };
 
 export default function NewNotePage() {
   const actionData = useActionData<typeof action>();
-  const registrantRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLTextAreaElement>(null);
-  const ageRef = useRef<HTMLTextAreaElement>(null);
-  const phoneRef = useRef<HTMLTextAreaElement>(null);
-  const dobRef = useRef<HTMLTextAreaElement>(null);
-  const medicalRef = useRef<HTMLTextAreaElement>(null);
+  const registrantRef = useRef<HTMLInputElement>(null) as any;
+  const emailRef = useRef<HTMLTextAreaElement>(null) as any;
+  const ageRef = useRef<HTMLTextAreaElement>(null) as any;
+  const phoneRef = useRef<HTMLTextAreaElement>(null) as any;
+  const dobRef = useRef<HTMLTextAreaElement>(null) as any;
+  const medicalRef = useRef<HTMLTextAreaElement>(null) as any;
 
   useEffect(() => {
     if (actionData?.errors?.registrant) {
       registrantRef.current?.focus();
-    } else if (actionData?.errors?.body) {
+    } else if (actionData?.errors?.registrant) {
       emailRef.current?.focus();
     } else if (actionData?.errors?.age) {
       ageRef.current?.focus();
