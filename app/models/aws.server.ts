@@ -6,11 +6,11 @@ import { toFile, toString } from "qrcode";
 import { createHash } from "crypto";
 import { readFile, unlink } from "fs/promises";
 
-export const awsKey = process.env.AWS_KEY;
-export const awsSecret = process.env.AWS_SECRET;
-export const awsBucketName = process.env.AWS_BUCKET_NAME;
+const awsKey = process.env.AWS_KEY || "";
+const awsSecret = process.env.AWS_SECRET || "";
+const awsBucketName = process.env.AWS_BUCKET_NAME || "";
 
-export const awsConfig = {
+const awsConfig = {
   region: "us-east-1",
   credentials: {
     accessKeyId: awsKey,

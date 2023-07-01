@@ -1,4 +1,4 @@
-import type { ActionArgs } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
@@ -22,14 +22,14 @@ export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
   const registrant = formData.get("registrant");
   const email = formData.get("email");
-  const age = formData.get("age")?.toString() || undefined;
+  const age = formData.get("age")?.toString() || "";
   const phone = formData.get("phone");
   const childId = formData.get("childId")?.toString() || "";
   const qrcode = formData.get("qrcode")?.toString() || "";
   const dobForm = formData.get("dob")?.toString();
-  const medical = formData.get("medical")?.toString();
+  const medical = formData.get("medical")?.toString() || "";
 
-  let dob;
+  let dob = new Date();
 
   if (dobForm) {
     dob = new Date(dobForm);
