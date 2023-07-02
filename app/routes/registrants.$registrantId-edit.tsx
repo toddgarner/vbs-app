@@ -19,6 +19,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 };
 
 export const action = async ({ request }: ActionArgs) => {
+  const userId = await requireUserId(request);
   const formData = await request.formData();
   const registrant = formData.get("registrant");
   const email = formData.get("email");
@@ -139,17 +140,21 @@ export const action = async ({ request }: ActionArgs) => {
     );
   }
 
-  const child = await updateChild(
-    childId,
-    registrant,
-    ageInt,
-    phone,
-    email,
-    qrcode,
-    dob,
-    medical,
-    status
-  );
+  const child = await getChild({ id: childId, userId });
+
+  if (child) {
+    await updateChild(
+      child.id,
+      child.registrant,
+      child.age,
+      child.phone,
+      child.email,
+      qrcode,
+      child.dob,
+      child.medical,
+      child.status
+    );
+  }
 
   return redirect(`/registrants/${child.id}`);
 };
