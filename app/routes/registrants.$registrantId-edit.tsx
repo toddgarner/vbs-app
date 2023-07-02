@@ -147,7 +147,8 @@ export const action = async ({ request }: ActionArgs) => {
     email,
     qrcode,
     dob,
-    medical
+    medical,
+    status
   );
 
   return redirect(`/registrants/${child.id}`);
