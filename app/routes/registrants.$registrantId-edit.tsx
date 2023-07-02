@@ -156,7 +156,11 @@ export const action = async ({ request }: ActionArgs) => {
     );
   }
 
-  return redirect(`/registrants/${child.id}`);
+  if (child) {
+    return redirect(`/registrants/${child.id}`);
+  } else {
+    return redirect(`/registrants`);
+  }
 };
 
 export default function NewNotePage() {
