@@ -1,4 +1,4 @@
-app = "vbs-app-51a0"
+app = "vbs-app"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
