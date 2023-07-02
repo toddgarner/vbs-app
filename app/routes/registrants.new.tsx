@@ -4,7 +4,11 @@ import { Form, useActionData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import { createQRCode } from "~/models/aws.server";
 
-import { createChild, updateChild } from "~/models/registration.server";
+import {
+  createChild,
+  getChild,
+  updateChild,
+} from "~/models/registration.server";
 import { requireUserId } from "~/session.server";
 
 export const action = async ({ request }: ActionArgs) => {
@@ -142,17 +146,21 @@ export const action = async ({ request }: ActionArgs) => {
 
   const qrcode = await createQRCode(note.id);
 
-  await updateChild(
-    note.id,
-    registrant,
-    ageInt,
-    phone,
-    email,
-    qrcode,
-    dob,
-    medical,
-    status
-  );
+  const child = await getChild({ id: note.id, userId });
+
+  if (child) {
+    await updateChild(
+      child.id,
+      child.registrant,
+      child.age,
+      child.phone,
+      child.email,
+      qrcode,
+      child.dob,
+      child.medical,
+      child.status
+    );
+  }
 
   return redirect(`/registrants/${note.id}`);
 };
