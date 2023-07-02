@@ -137,6 +137,7 @@ export const action = async ({ request }: ActionArgs) => {
     dob,
     medical,
     qrcode: "",
+    status: "out",
   });
 
   const qrcode = await createQRCode(note.id);
@@ -149,7 +150,8 @@ export const action = async ({ request }: ActionArgs) => {
     email,
     qrcode,
     dob,
-    medical
+    medical,
+    status
   );
 
   return redirect(`/registrants/${note.id}`);

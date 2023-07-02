@@ -18,6 +18,7 @@ export function getChild({
       qrcode: true,
       dob: true,
       medical: true,
+      status: true,
     },
     where: { id, userId },
   });
@@ -35,6 +36,7 @@ export function getChildListItems({ userId }: { userId: User["id"] }) {
       qrcode: true,
       dob: true,
       medical: true,
+      status: true,
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -49,9 +51,17 @@ export function createChild({
   qrcode,
   dob,
   medical,
+  status,
 }: Pick<
   Child,
-  "registrant" | "age" | "phone" | "email" | "qrcode" | "dob" | "medical"
+  | "registrant"
+  | "age"
+  | "phone"
+  | "email"
+  | "qrcode"
+  | "dob"
+  | "medical"
+  | "status"
 > & {
   userId: User["id"];
 }) {
@@ -64,6 +74,7 @@ export function createChild({
       qrcode,
       dob,
       medical,
+      status,
       user: {
         connect: {
           id: userId,
@@ -81,7 +92,8 @@ export async function updateChild(
   email: string,
   qrcode: string,
   dob: Date,
-  medical: string
+  medical: string,
+  status: string
 ) {
   const childInScope = await prisma.child.findUnique({ where: { id } });
 
@@ -101,6 +113,7 @@ export async function updateChild(
       qrcode,
       dob,
       medical,
+      status,
     },
   });
 }
