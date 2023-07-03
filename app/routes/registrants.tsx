@@ -1,4 +1,5 @@
-import { SetStateAction, useState } from "react";
+import { useState } from "react";
+import type { SetStateAction } from "react";
 import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
@@ -59,6 +60,9 @@ export default function RegistrantsPage() {
           <Link to="new" className="block p-4 text-xl text-blue-500">
             + New Registration
           </Link>
+          <Link to="scan" className="block p-4 text-xl text-blue-500">
+            Scan
+          </Link>
 
           <hr />
 
@@ -80,7 +84,6 @@ export default function RegistrantsPage() {
                 </button>
               )}
             </div>
-
             {filteredItems.length === 0 ? (
               <p className="p-4">No registrants yet</p>
             ) : (
