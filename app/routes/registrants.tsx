@@ -66,10 +66,18 @@ export default function RegistrantsPage() {
 
       <main className="flex h-full flex-col bg-white sm:flex-row">
         <div className="border-r bg-gray-50 sm:w-80">
-          <Link to="new" className="block p-4 text-xl text-blue-500">
+          <Link
+            to="new"
+            reloadDocument
+            className="block p-4 text-xl text-blue-500"
+          >
             + New Registration
           </Link>
-          <Link to="scan" className="block p-4 text-xl text-blue-500">
+          <Link
+            to="scan"
+            reloadDocument
+            className="block p-4 text-xl text-blue-500"
+          >
             Scan
           </Link>
           <div className="flex items-center justify-between p-4 text-xl text-blue-500">
