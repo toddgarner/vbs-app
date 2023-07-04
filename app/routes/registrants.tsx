@@ -19,12 +19,21 @@ export const loader = async ({ request }: LoaderArgs) => {
 
 export default function RegistrantsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // ["out", "in", "all"] "
   const data = useLoaderData<typeof loader>();
   const user = useUser();
 
-  const filteredItems = data.childListItems.filter((child) =>
-    child.registrant.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = data.childListItems.filter((child) => {
+    const isMatchedSearchTerm = child.registrant
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    if (statusFilter === "all") return isMatchedSearchTerm;
+    if (statusFilter === "in")
+      return isMatchedSearchTerm && child.status === "in";
+    if (statusFilter === "out")
+      return isMatchedSearchTerm && child.status === "out";
+    return isMatchedSearchTerm;
+  });
 
   const pathname = data.pathname;
 
@@ -63,7 +72,21 @@ export default function RegistrantsPage() {
           <Link to="scan" className="block p-4 text-xl text-blue-500">
             Scan
           </Link>
-
+          <div className="flex items-center justify-between p-4 text-xl text-blue-500">
+            <label htmlFor="statusFilter" className="mr-2">
+              Status:
+            </label>
+            <select
+              id="statusFilter"
+              className="rounded-md border border-gray-300 px-2 py-1 text-gray-900"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="in">In</option>
+              <option value="out">Out</option>
+            </select>
+          </div>
           <hr />
 
           <div className="hidden sm:block">
