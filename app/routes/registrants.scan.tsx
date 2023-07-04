@@ -22,7 +22,11 @@ export default function ScanPage() {
     }
     const html5QrcodeScanner = new Html5QrcodeScanner(
       "reader",
-      { fps: 5, qrbox: { width: 250, height: 250 } },
+      {
+        fps: 5,
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true,
+      },
       /* verbose= */ false
     );
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
