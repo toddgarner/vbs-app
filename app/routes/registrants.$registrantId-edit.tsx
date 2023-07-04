@@ -145,13 +145,13 @@ export const action = async ({ request }: ActionArgs) => {
   if (child) {
     await updateChild(
       child.id,
-      child.registrant,
-      child.age,
-      child.phone,
-      child.email,
+      registrant,
+      ageInt,
+      phone,
+      email,
       qrcode,
-      child.dob,
-      child.medical,
+      dob,
+      medical,
       child.status
     );
   }

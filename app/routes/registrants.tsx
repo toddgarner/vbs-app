@@ -108,7 +108,7 @@ export default function RegistrantsPage() {
               )}
             </div>
             {filteredItems.length === 0 ? (
-              <p className="p-4">No registrants yet</p>
+              <p className="p-4">No registrants</p>
             ) : (
               <ol className="sm:mt-4">
                 {filteredItems.map((child) => (
@@ -150,7 +150,7 @@ export default function RegistrantsPage() {
               </div>
 
               {filteredItems.length === 0 ? (
-                <p className="p-4">No registrants yet</p>
+                <p className="p-4">No registrants</p>
               ) : (
                 <ol className="sm:mt-4">
                   {filteredItems.map((child) => (

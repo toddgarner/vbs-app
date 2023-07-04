@@ -113,6 +113,7 @@ export async function sendQrCode(
   const fromEmail = process.env.EMAIL_FROM || "";
   const replyTo = process.env.EMAIL_REPLY_TO || "";
   const subject = process.env.EMAIL_SUBJECT || "";
+  const personalizedSubject = `${subject}: ${registrant}`;
 
   const message = `You have been registered for VBS at ${vbsProvider}. Below is ${registrant}'s QR code for check-in:
           ${qrcode}`;
@@ -129,7 +130,7 @@ export async function sendQrCode(
   try {
     const params = {
       Destination: {
-        CcAddresses: [],
+        CcAddresses: [replyTo],
         ToAddresses: [toEmail],
       },
       Message: {
@@ -145,7 +146,7 @@ export async function sendQrCode(
         },
         Subject: {
           Charset: "UTF-8",
-          Data: subject,
+          Data: personalizedSubject,
         },
       },
       Source: fromEmail,
