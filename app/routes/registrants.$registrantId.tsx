@@ -120,10 +120,10 @@ export default function ChildDetailsPage() {
       </div>
 
       <hr className="my-4" />
-      <div className="flex">
+      <div className="flex flex-wrap">
         <Link
           to={`/registrants/${data.child.id}-edit`}
-          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+          className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
         >
           Edit
         </Link>
@@ -134,7 +134,7 @@ export default function ChildDetailsPage() {
             type="submit"
             name="_action"
             value="updateChildStatus"
-            className="mx-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
             {data.child.status === "in" ? "Check Out" : "Check In"}
           </button>
@@ -158,7 +158,7 @@ export default function ChildDetailsPage() {
             type="submit"
             name="_action"
             value="sendQrCode"
-            className="mx-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
             Email QR Code
           </button>
@@ -166,7 +166,7 @@ export default function ChildDetailsPage() {
             type="submit"
             name="_action"
             value="textQrCode"
-            className="mx-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
             Text QR Code
           </button>
@@ -193,7 +193,7 @@ export default function ChildDetailsPage() {
           type="submit"
           name="_action"
           value="deleteChild"
-          className="my-2 rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:bg-red-400"
+          className="m-2 rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:bg-red-400"
         >
           Delete
         </button>
