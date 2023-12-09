@@ -108,7 +108,27 @@ Now that everything is set up you can commit and push your changes to your repo.
 
 ### Connecting to your database
 
-The sqlite database lives at `/data/sqlite.db` in your deployed application. You can connect to the live database by running `fly ssh console -C database-cli`.
+The sqlite database lives at `/data/sqlite.db` in your deployed application. You can connect to the live database by running `fly ssh console -C database-cli -a vbs-app`.
+
+### Schema of tables
+#### Child
+```
+CREATE TABLE IF NOT EXISTS "Child" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "registrant" TEXT NOT NULL,
+    "age" INTEGER NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "dob" DATETIME NOT NULL,
+    "medical" TEXT NOT NULL,
+    "qrcode" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "Child_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+```
 
 ### Getting Help with Deployment
 
