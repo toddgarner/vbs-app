@@ -239,7 +239,7 @@ export default function NewNotePage() {
 
       <div>
         <label className="flex w-16 flex-col gap-1">
-          <span>Grade: </span>
+          <span>Age: </span>
           <input
             ref={ageRef}
             name="age"
@@ -259,7 +259,7 @@ export default function NewNotePage() {
         ) : null}
       </div>
 
-      <div>
+      {/* <div>
         <label className="flex w-64 flex-col gap-1">
           <span>DOB: </span>
           <input
@@ -279,7 +279,7 @@ export default function NewNotePage() {
             {actionData.errors.dob}
           </div>
         ) : null}
-      </div>
+      </div> */}
 
       <div>
         <label className="flex w-full flex-col gap-1">

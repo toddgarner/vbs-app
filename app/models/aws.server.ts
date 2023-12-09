@@ -5,6 +5,8 @@ import { toFile, toString } from "qrcode";
 // import { log } from "~/models/log.server";
 import { createHash } from "crypto";
 import { readFile, unlink } from "fs/promises";
+import { prisma } from "~/db.server";
+import type { Child } from "@prisma/client";
 
 const awsKey = process.env.AWS_KEY || "";
 const awsSecret = process.env.AWS_SECRET || "";
@@ -29,7 +31,7 @@ export async function createQRCode(childId: string): Promise<string> {
   try {
     await toFile(fileName, id, {
       color: {
-        dark: "#31aac1",
+        dark: "#000",
         light: "#fff",
       },
     });
@@ -85,49 +87,90 @@ export async function createQRCodeSVGForAppToken(
 // !!! This will be for SMS when available !!!
 const vbsProvider = process.env.VBS_PROVIDER;
 
-export async function textQrCode(
-  phoneNumber: string,
-  registrant: string
-): Promise<void> {
-  phoneNumber = "+1" + phoneNumber.replace(/\D/g, "");
-  const message = `You have been registered for VBS at ${vbsProvider}. The link to ${registrant}'s QR code is here:`;
+export async function textQrCode(phoneNumber: string): Promise<void> {
+  // Format phone number for AWS SMS
+  const parentPhoneNumber = "+1" + phoneNumber.replace(/\D/g, "");
   try {
+    // Query the database to get all registrants for the given parentPhoneNumber
+    const registrants = await prisma.child.findMany({
+      where: {
+        phone: phoneNumber,
+      },
+    });
+
+    if (registrants.length === 0) {
+      console.log("No registrants found for", phoneNumber);
+      return;
+    }
+
+    // Concatenate information for all registrants into a single message
+    const message = `You have been registered for Children's Church at ${vbsProvider}.`;
+    const registrantInfo = registrants
+      .map(
+        (registrant: Child) =>
+          `${registrant.registrant}'s QR code: ${registrant.qrcode}`
+      )
+      .join(" ");
+
+    const fullMessage = `${message}\n\n${registrantInfo}`;
+
+    // Send the message to the parent phone number
     const params = {
-      Message: message,
-      PhoneNumber: phoneNumber,
+      Message: fullMessage,
+      PhoneNumber: parentPhoneNumber,
     };
+
     await snsClient.send(new PublishCommand(params));
-    console.log("sent!");
+    console.log("Sent QR code messages for", phoneNumber);
+
+    console.log("All messages sent!");
   } catch (err) {
-    console.log(err);
-    // log.error(err);
+    console.error(err);
     throw err;
+  } finally {
+    await prisma.$disconnect(); // Close the Prisma Client connection
   }
 }
 
-export async function sendQrCode(
-  toEmail: string,
-  registrant: string,
-  qrcode: string
-): Promise<void> {
-  const fromEmail = process.env.EMAIL_FROM || "";
-  const replyTo = process.env.EMAIL_REPLY_TO || "";
-  const subject = process.env.EMAIL_SUBJECT || "";
-  const personalizedSubject = `${subject}: ${registrant}`;
+export async function Grade(toEmail: string): Promise<void> {
+  try {
+    // Query the database to get all registrants for the given email
+    const registrants = await prisma.child.findMany({
+      where: {
+        email: toEmail,
+      },
+    });
 
-  const message = `You have been registered for VBS at ${vbsProvider}. Below is ${registrant}'s QR code for check-in:
-          ${qrcode}`;
+    if (registrants.length === 0) {
+      console.log("No registrants found for", toEmail);
+      return;
+    }
 
-  const htmlContent = `
+    const fromEmail = process.env.EMAIL_FROM || "";
+    const replyTo = process.env.EMAIL_REPLY_TO || "";
+    const subject = process.env.EMAIL_SUBJECT || "";
+    const personalizedSubject = `${subject}: Registrants for ${toEmail}`;
+
+    // Concatenate information for all registrants into a single message
+    const message = `You have been registered for Children's Church at ${vbsProvider}. Below are your QR codes for check-in:\n\n${registrants
+      .map((registrant) => `${registrant.registrant}: ${registrant.qrcode}`)
+      .join("\n")}`;
+
+    const htmlContent = `
           <html>
           <body>
-          <p>You have been registered for VBS at ${vbsProvider}. Below is ${registrant}'s QR code for check-in:</p>
-          <img src=${qrcode} alt="Embedded Image">
+          <p>You have been registered for Children's Church at ${vbsProvider}. Below are your QR codes for check-in:</p>
+          ${registrants
+            .map(
+              (registrant) =>
+                `<p>${registrant.registrant}</p> 
+                <p><img src=${registrant.qrcode} alt="${registrant.registrant} QR Code"></p>`
+            )
+            .join("")}
           </body>
           </html>
           `;
 
-  try {
     const params = {
       Destination: {
         CcAddresses: [replyTo],
@@ -152,9 +195,16 @@ export async function sendQrCode(
       Source: fromEmail,
       ReplyToAddresses: [replyTo],
     };
+
+    // Send the email to the parent's email address
     await sesClient.send(new SendEmailCommand(params));
+    console.log("Sent QR code emails for", toEmail);
+
+    console.log("All emails sent!");
   } catch (err) {
-    // log.error(err)
+    console.error(err);
     throw err;
+  } finally {
+    await prisma.$disconnect(); // Close the Prisma Client connection
   }
 }

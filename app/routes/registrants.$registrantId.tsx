@@ -44,10 +44,10 @@ export const action = async ({ params, request }: ActionArgs) => {
     await deleteChild({ id: params.registrantId, userId });
     return redirect("/registrants");
   } else if (action === "sendQrCode") {
-    await sendQrCode(email, registrant, qrcode);
+    await sendQrCode(email);
     return { status: 200, message: "QR Code sent" };
   } else if (action === "textQrCode") {
-    await textQrCode(phone, registrant);
+    await textQrCode(phone);
     return { status: 200, message: "QR Code sent" };
   } else if (action === "updateChildStatus") {
     const child = await getChild({ id: params.registrantId, userId });
@@ -160,7 +160,15 @@ export default function ChildDetailsPage() {
             value="sendQrCode"
             className="mx-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
-            Send QR Code
+            Email QR Code
+          </button>
+          <button
+            type="submit"
+            name="_action"
+            value="textQrCode"
+            className="mx-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+          >
+            Text QR Code
           </button>
         </Form>
         {/* <Form method="post">
