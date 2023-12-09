@@ -132,7 +132,7 @@ export async function textQrCode(phoneNumber: string): Promise<void> {
   }
 }
 
-export async function Grade(toEmail: string): Promise<void> {
+export async function sendQrCode(toEmail: string): Promise<void> {
   try {
     // Query the database to get all registrants for the given email
     const registrants = await prisma.child.findMany({
