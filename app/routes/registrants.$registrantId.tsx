@@ -90,7 +90,7 @@ export default function ChildDetailsPage() {
       <h3 className="text-2xl font-bold">{data.child.registrant}</h3>
       <p className="py-2">Email: {data.child.email}</p>
       <p className="py-2">Phone: {data.child.phone}</p>
-      <p className="py-2">Grade: {data.child.age}</p>
+      <p className="py-2">Age: {data.child.age}</p>
       <p className="py-2">DOB: {data.child.dob.substring(0, 10)}</p>
       <p className="py-2">
         Medical concerns: {data.child.medical ? data.child.medical : "none"}
