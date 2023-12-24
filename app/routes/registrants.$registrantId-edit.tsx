@@ -197,7 +197,7 @@ export default function NewNotePage() {
     >
       <div>
         <label className="flex w-full flex-col gap-1">
-          <span>registrant: </span>
+          <span>Child: </span>
           <input
             ref={registrantRef}
             defaultValue={data.child.registrant}
