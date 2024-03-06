@@ -2,98 +2,85 @@ import type { User, Child } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 
-export function getChild({
-  id,
-  userId,
-}: Pick<Child, "id"> & {
-  userId: User["id"];
-}) {
-  return prisma.child.findFirst({
-    select: {
-      id: true,
-      registrant: true,
-      email: true,
-      phone: true,
-      age: true,
-      qrcode: true,
-      dob: true,
-      medical: true,
-      status: true,
-    },
-    where: { id, userId },
+export function getChild(id: Child["id"]) {
+  return prisma.child.findUnique({
+    where: { id },
+    include: { user: true },
   });
 }
 
-export function getChildListItems({ userId }: { userId: User["id"] }) {
-  return prisma.child.findMany({
-    where: { userId },
-    select: {
-      id: true,
-      registrant: true,
-      email: true,
-      phone: true,
-      age: true,
-      qrcode: true,
-      dob: true,
-      medical: true,
-      status: true,
-    },
-    orderBy: { updatedAt: "desc" },
+export function getAllChildren() {
+  return prisma.child.findMany();
+}
+
+export function getChildListItems(userId: User["id"]) {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    include: { children: true },
   });
 }
 
 export function createChild({
   userId,
-  registrant,
+  name,
   age,
-  phone,
-  email,
-  qrcode,
-  dob,
+  grade,
   medical,
-  status,
+  qrcode,
+  picPermission,
+  tshirtSize,
+  transportation,
+  emergencyContactName,
+  emergencyContactPhone,
+  checkedIn,
 }: Pick<
   Child,
-  | "registrant"
+  | "name"
   | "age"
-  | "phone"
-  | "email"
-  | "qrcode"
-  | "dob"
+  | "grade"
   | "medical"
-  | "status"
+  | "qrcode"
+  | "picPermission"
+  | "tshirtSize"
+  | "transportation"
+  | "emergencyContactName"
+  | "emergencyContactPhone"
+  | "checkedIn"
 > & {
   userId: User["id"];
 }) {
   return prisma.child.create({
     data: {
-      registrant,
+      name,
       age,
-      phone,
-      email,
-      qrcode,
-      dob,
+      grade,
       medical,
-      status,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+      qrcode,
+      picPermission,
+      tshirtSize,
+      transportation,
+      emergencyContactName,
+      emergencyContactPhone,
+      checkedIn,
+      userId,
     },
   });
 }
 
 export async function updateChild(
-  id: string,
-  registrant: string,
+  id: Child["id"],
+  name: string,
   age: number,
-  phone: string,
-  email: string,
-  qrcode: string,
-  dob: Date,
+  grade: string,
+  userId: User["id"],
   medical: string,
-  status: string
+  qrcode: string,
+  picPermission: boolean,
+  tshirtSize: string,
+  transportation: boolean,
+  emergencyContactName: string,
+  emergencyContactPhone: string,
+  checkedIn: boolean
 ) {
   const childInScope = await prisma.child.findUnique({ where: { id } });
 
@@ -106,23 +93,24 @@ export async function updateChild(
       id: childInScope.id,
     },
     data: {
-      registrant,
+      name,
       age,
-      phone,
-      email,
-      qrcode,
-      dob,
+      grade,
+      userId,
       medical,
-      status,
+      qrcode,
+      picPermission,
+      tshirtSize,
+      transportation,
+      emergencyContactName,
+      emergencyContactPhone,
+      checkedIn,
     },
   });
 }
 
-export function deleteChild({
-  id,
-  userId,
-}: Pick<Child, "id"> & { userId: User["id"] }) {
-  return prisma.child.deleteMany({
-    where: { id, userId },
+export function deleteChild(id: Child["id"]) {
+  return prisma.child.delete({
+    where: { id },
   });
 }

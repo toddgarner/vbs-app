@@ -17,25 +17,95 @@ export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
+  const phone = formData.get("phone");
+  const name = formData.get("name");
   const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
 
   if (!validateEmail(email)) {
     return json(
-      { errors: { email: "Email is invalid", password: null } },
+      {
+        errors: {
+          email: "Email is invalid",
+          password: null,
+          phone: null,
+          name: null,
+        },
+      },
       { status: 400 }
     );
   }
 
   if (typeof password !== "string" || password.length === 0) {
     return json(
-      { errors: { email: null, password: "Password is required" } },
+      {
+        errors: {
+          email: null,
+          password: "Password is required",
+          phone: null,
+          name: null,
+        },
+      },
       { status: 400 }
     );
   }
 
   if (password.length < 8) {
     return json(
-      { errors: { email: null, password: "Password is too short" } },
+      {
+        errors: {
+          email: null,
+          password: "Password is too short",
+          phone: null,
+          name: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  const phoneRegex: RegExp =
+    /^(\([0-9]{3}\)|[0-9]{3})[- ]?[0-9]{3}[- ]?[0-9]{4}$/gm;
+
+  if (typeof phone !== "string" || phone.length === 0) {
+    return json(
+      {
+        errors: {
+          email: null,
+          registrant: null,
+          parent: null,
+          age: null,
+          phone: "Phone is required",
+          dob: null,
+        },
+      },
+      { status: 400 }
+    );
+  } else if (!phoneRegex.test(phone)) {
+    return json(
+      {
+        errors: {
+          email: null,
+          registrant: null,
+          parent: null,
+          age: null,
+          phone: "Phone is invalid",
+          dob: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  if (typeof name !== "string" || name.length === 0) {
+    return json(
+      {
+        errors: {
+          email: null,
+          password: null,
+          phone: null,
+          name: "Name is required",
+        },
+      },
       { status: 400 }
     );
   }
@@ -47,13 +117,17 @@ export const action = async ({ request }: ActionArgs) => {
         errors: {
           email: "A user already exists with this email",
           password: null,
+          phone: null,
+          name: null,
         },
       },
       { status: 400 }
     );
   }
 
-  const user = await createUser(email, password);
+  const defaultRoleId = 1;
+
+  const user = await createUser(email, password, defaultRoleId, phone, name);
 
   return createUserSession({
     redirectTo,
@@ -135,6 +209,41 @@ export default function Join() {
                   {actionData.errors.password}
                 </div>
               ) : null}
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Phone Number
+            </label>
+            <div className="mt-1">
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Full Name
+            </label>
+            <div className="mt-1">
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
+              />
             </div>
           </div>
 

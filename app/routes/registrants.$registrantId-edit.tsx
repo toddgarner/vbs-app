@@ -11,7 +11,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
   invariant(params.registrantId, "Child not found");
 
-  const child = await getChild({ id: params.registrantId, userId });
+  const child = await getChild(params.registrantId);
   if (!child) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -140,19 +140,23 @@ export const action = async ({ request }: ActionArgs) => {
     );
   }
 
-  const child = await getChild({ id: childId, userId });
+  const child = await getChild(childId);
 
   if (child) {
     await updateChild(
       child.id,
-      registrant,
-      ageInt,
-      phone,
-      email,
+      child.name,
+      child.age,
+      child.grade,
+      child.userId,
+      child.medical,
       qrcode,
-      dob,
-      medical,
-      child.status
+      child.picPermission,
+      child.tshirtSize,
+      child.transportation,
+      child.emergencyContactName,
+      child.emergencyContactPhone,
+      child.checkedIn
     );
   }
 
@@ -186,144 +190,129 @@ export default function NewNotePage() {
   }, [actionData]);
 
   return (
-    <Form
-      method="post"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        width: "100%",
-      }}
-    >
-      <div>
-        <label className="flex w-full flex-col gap-1">
-          <span>Child: </span>
-          <input
-            ref={registrantRef}
-            defaultValue={data.child.registrant}
-            name="registrant"
-            className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
-            aria-invalid={actionData?.errors?.registrant ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.registrant ? "registrant-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.registrant ? (
-          <div className="pt-1 text-red-700" id="registrant-error">
-            {actionData.errors.registrant}
-          </div>
-        ) : null}
-      </div>
+    <div>
+      <p>{data.child.user.name}</p>
+      <p>{data.child.user.phone}</p>
+      <p>{data.child.user.email}</p>
 
-      <div>
-        <label className="flex w-full flex-col gap-1">
-          <span>Email: </span>
-          <input
-            ref={emailRef}
-            defaultValue={data.child.email}
-            name="email"
-            className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-            aria-invalid={actionData?.errors?.email ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.email ? "email-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.email ? (
-          <div className="pt-1 text-red-700" id="email-error">
-            {actionData.errors.email}
-          </div>
-        ) : null}
-      </div>
+      <Form
+        method="post"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          width: "100%",
+        }}
+      >
+        <div>
+          <label className="flex w-full flex-col gap-1">
+            <span>Child: </span>
+            <input
+              ref={registrantRef}
+              defaultValue={data.child.name}
+              name="registrant"
+              className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
+              aria-invalid={actionData?.errors?.registrant ? true : undefined}
+              aria-errormessage={
+                actionData?.errors?.registrant ? "registrant-error" : undefined
+              }
+            />
+          </label>
+          {actionData?.errors?.registrant ? (
+            <div className="pt-1 text-red-700" id="registrant-error">
+              {actionData.errors.registrant}
+            </div>
+          ) : null}
+        </div>
 
-      <div>
-        <label className="flex w-16 flex-col gap-1">
-          <span>Age: </span>
-          <input
-            ref={ageRef}
-            name="age"
-            defaultValue={data.child.age}
-            maxLength={2}
-            className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-            aria-invalid={actionData?.errors?.age ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.age ? "age-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.age ? (
-          <div className="pt-1 text-red-700" id="age-error">
-            {actionData.errors.age}
-          </div>
-        ) : null}
-      </div>
+        <div>
+          <label className="flex w-full flex-col gap-1">
+            <span>Email: </span>
+            <input
+              ref={emailRef}
+              defaultValue={data.child.email}
+              name="email"
+              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              aria-invalid={actionData?.errors?.email ? true : undefined}
+              aria-errormessage={
+                actionData?.errors?.email ? "email-error" : undefined
+              }
+            />
+          </label>
+          {actionData?.errors?.email ? (
+            <div className="pt-1 text-red-700" id="email-error">
+              {actionData.errors.email}
+            </div>
+          ) : null}
+        </div>
 
-      {/* <div>
+        <div>
+          <label className="flex w-16 flex-col gap-1">
+            <span>Age: </span>
+            <input
+              ref={ageRef}
+              name="age"
+              defaultValue={data.child.age}
+              maxLength={2}
+              className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              aria-invalid={actionData?.errors?.age ? true : undefined}
+              aria-errormessage={
+                actionData?.errors?.age ? "age-error" : undefined
+              }
+            />
+          </label>
+          {actionData?.errors?.age ? (
+            <div className="pt-1 text-red-700" id="age-error">
+              {actionData.errors.age}
+            </div>
+          ) : null}
+        </div>
+
+        {/* <div>
         <label className="flex w-64 flex-col gap-1">
-          <span>DOB: </span>
-          <input
-            ref={dobRef}
-            name="dob"
-            type="date"
-            defaultValue={data.child.dob.substring(0, 10)}
-            className="w-64 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-            aria-invalid={actionData?.errors?.dob ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.age ? "dob-error" : undefined
-            }
-          />
+        <span>DOB: </span>
+        <input
+        ref={dobRef}
+        name="dob"
+        type="date"
+        defaultValue={data.child.dob.substring(0, 10)}
+        className="w-64 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+        aria-invalid={actionData?.errors?.dob ? true : undefined}
+        aria-errormessage={
+          actionData?.errors?.age ? "dob-error" : undefined
+        }
+        />
         </label>
         {actionData?.errors?.dob ? (
           <div className="pt-1 text-red-700" id="dob-error">
-            {actionData.errors.dob}
+          {actionData.errors.dob}
           </div>
-        ) : null}
-      </div> */}
+          ) : null}
+        </div> */}
 
-      <div>
-        <label className="flex w-full flex-col gap-1">
-          <span>Phone: </span>
-          <input
-            ref={phoneRef}
-            defaultValue={data.child.phone}
-            name="phone"
-            className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-            aria-invalid={actionData?.errors?.phone ? true : undefined}
-            aria-errormessage={
-              actionData?.errors?.phone ? "phone-error" : undefined
-            }
-          />
-        </label>
-        {actionData?.errors?.phone ? (
-          <div className="pt-1 text-red-700" id="phone-error">
-            {actionData.errors.phone}
-          </div>
-        ) : null}
-      </div>
+        <div>
+          <label className="flex w-full flex-col gap-1">
+            <span>Medical Concerns: </span>
+            <input
+              ref={medicalRef}
+              defaultValue={data.child.medical}
+              name="medical"
+              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            />
+          </label>
+        </div>
 
-      <div>
-        <label className="flex w-full flex-col gap-1">
-          <span>Medical Concerns: </span>
-          <input
-            ref={medicalRef}
-            defaultValue={data.child.medical}
-            name="medical"
-            className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-          />
-        </label>
-      </div>
-
-      <div className="text-right">
-        <button
-          type="submit"
-          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
-        >
-          Save
-        </button>
-      </div>
-      <input type="hidden" name="childId" value={data.child.id} />
-      <input type="hidden" name="qrcode" value={data.child.qrcode} />
-    </Form>
+        <div className="text-right">
+          <button
+            type="submit"
+            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+          >
+            Save
+          </button>
+        </div>
+        <input type="hidden" name="childId" value={data.child.id} />
+        <input type="hidden" name="qrcode" value={data.child.qrcode} />
+      </Form>
+    </div>
   );
 }

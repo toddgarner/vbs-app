@@ -22,7 +22,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
   invariant(params.registrantId, "Child not found");
 
-  const child = await getChild({ id: params.registrantId, userId });
+  const child = await getChild(params.registrantId);
   if (!child) {
     throw new Response("Not Found", { status: 404 });
   }
@@ -41,7 +41,7 @@ export const action = async ({ params, request }: ActionArgs) => {
   const email = formData.get("email")?.toString() || "";
 
   if (action === "deleteChild") {
-    await deleteChild({ id: params.registrantId, userId });
+    await deleteChild(params.registrantId);
     return redirect("/registrants");
   } else if (action === "sendQrCode") {
     await sendQrCode(email);
@@ -50,31 +50,39 @@ export const action = async ({ params, request }: ActionArgs) => {
     await textQrCode(phone);
     return { status: 200, message: "QR Code sent" };
   } else if (action === "updateChildStatus") {
-    const child = await getChild({ id: params.registrantId, userId });
-    if (child && child?.status === "out") {
+    const child = await getChild(params.registrantId);
+    if (child && child?.checkedIn === false) {
       await updateChild(
         child.id,
-        child.registrant,
+        child.name,
         child.age,
-        child.phone,
-        child.email,
-        child.qrcode,
-        child.dob,
+        child.grade,
+        child.userId,
         child.medical,
-        "in"
+        qrcode,
+        child.picPermission,
+        child.tshirtSize,
+        child.transportation,
+        child.emergencyContactName,
+        child.emergencyContactPhone,
+        true
       );
       return { status: 200, message: "Child checked in" };
-    } else if (child && child?.status === "in") {
+    } else if (child && child?.checkedIn === true) {
       await updateChild(
         child.id,
-        child.registrant,
+        child.name,
         child.age,
-        child.phone,
-        child.email,
-        child.qrcode,
-        child.dob,
+        child.grade,
+        child.userId,
         child.medical,
-        "out"
+        qrcode,
+        child.picPermission,
+        child.tshirtSize,
+        child.transportation,
+        child.emergencyContactName,
+        child.emergencyContactPhone,
+        false
       );
       return { status: 200, message: "Child checked out" };
     }
@@ -87,16 +95,15 @@ export default function ChildDetailsPage() {
 
   return (
     <div>
-      <h3 className="text-2xl font-bold">{data.child.registrant}</h3>
-      <p className="py-2">Email: {data.child.email}</p>
-      <p className="py-2">Phone: {data.child.phone}</p>
+      <h3 className="text-2xl font-bold">{data.child.name}</h3>
       <p className="py-2">Age: {data.child.age}</p>
-      <p className="py-2">DOB: {data.child.dob.substring(0, 10)}</p>
+      <p className="py-2">DOB: {data.child.grade}</p>
       <p className="py-2">
-        Medical concerns: {data.child.medical ? data.child.medical : "none"}
+        Medical concerns / Allergies:{" "}
+        {data.child.medical ? data.child.medical : "none"}
       </p>
       <p className="py-2">
-        Checkin Status: {data.child.status ? data.child.status : "out"}
+        Checkin Status: {data.child.checkedIn === true ? "In" : "Out"}
       </p>
 
       {actionData &&
@@ -136,24 +143,16 @@ export default function ChildDetailsPage() {
             value="updateChildStatus"
             className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
-            {data.child.status === "in" ? "Check Out" : "Check In"}
+            {data.child.checkedIn === true ? "Check Out" : "Check In"}
           </button>
         </Form>
 
         <Form method="post">
           <input type="hidden" name="registrantId" value={data.child.id} />
-          <input type="hidden" name="phone" value={data.child.phone} />
-          <input
-            type="hidden"
-            name="registrant"
-            value={data.child.registrant}
-          />
+          <input type="hidden" name="registrant" value={data.child.name} />
           <input type="hidden" name="qrcode" value={data.child.qrcode} />
-          <input
-            type="hidden"
-            name="email"
-            value={data.child.email.toLowerCase()}
-          />
+          <input type="hidden" name="email" value={data.child.user.email} />
+          <input type="hidden" name="phone" value={data.child.user.phone} />
           <button
             type="submit"
             name="_action"

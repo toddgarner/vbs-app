@@ -91,24 +91,27 @@ export async function textQrCode(phoneNumber: string): Promise<void> {
   // Format phone number for AWS SMS
   const parentPhoneNumber = "+1" + phoneNumber.replace(/\D/g, "");
   try {
-    // Query the database to get all registrants for the given parentPhoneNumber
-    const registrants = await prisma.child.findMany({
+    // Query the database to get all registrants for the given parentPhoneNumberz
+    const user = await prisma.user.findFirst({
       where: {
         phone: phoneNumber,
       },
+      include: {
+        children: true,
+      },
     });
 
-    if (registrants.length === 0) {
+    if (!user) {
       console.log("No registrants found for", phoneNumber);
       return;
     }
 
     // Concatenate information for all registrants into a single message
     const message = `You have been registered for Children's Church at ${vbsProvider}.`;
-    const registrantInfo = registrants
+    const registrantInfo = user.children
       .map(
         (registrant: Child) =>
-          `${registrant.registrant}'s QR code: ${registrant.qrcode}`
+          `${registrant.name}'s QR code: ${registrant.qrcode}`
       )
       .join(" ");
 
@@ -135,13 +138,16 @@ export async function textQrCode(phoneNumber: string): Promise<void> {
 export async function sendQrCode(toEmail: string): Promise<void> {
   try {
     // Query the database to get all registrants for the given email
-    const registrants = await prisma.child.findMany({
+    const user = await prisma.user.findUnique({
       where: {
         email: toEmail,
       },
+      include: {
+        children: true,
+      },
     });
 
-    if (registrants.length === 0) {
+    if (!user) {
       console.log("No registrants found for", toEmail);
       return;
     }
@@ -152,19 +158,19 @@ export async function sendQrCode(toEmail: string): Promise<void> {
     const personalizedSubject = `${subject}: Registrants for ${toEmail}`;
 
     // Concatenate information for all registrants into a single message
-    const message = `You have been registered for Children's Church at ${vbsProvider}. Below are your QR codes for check-in:\n\n${registrants
-      .map((registrant) => `${registrant.registrant}: ${registrant.qrcode}`)
+    const message = `You have been registered for Children's Church at ${vbsProvider}. Below are your QR codes for check-in:\n\n${user.children
+      .map((child) => `${child.name}: ${child.qrcode}`)
       .join("\n")}`;
 
     const htmlContent = `
           <html>
           <body>
           <p>You have been registered for Children's Church at ${vbsProvider}. Below are your QR codes for check-in:</p>
-          ${registrants
+          ${user.children
             .map(
-              (registrant) =>
-                `<p>${registrant.registrant}</p> 
-                <p><img src=${registrant.qrcode} alt="${registrant.registrant} QR Code"></p>`
+              (child) =>
+                `<p>${child.name}</p> 
+                <p><img src=${child.qrcode} alt="${child.name} QR Code"></p>`
             )
             .join("")}
           </body>

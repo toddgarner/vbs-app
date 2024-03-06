@@ -4,16 +4,29 @@ import type { LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 
-import { getChildListItems } from "~/models/registration.server";
+import {
+  getAllChildren,
+  getChildListItems,
+} from "~/models/registration.server";
 import { requireUserId } from "~/session.server";
 import { useUser } from "~/utils";
+import { getUserById } from "~/models/user.server";
 
 export const loader = async ({ request }: LoaderArgs) => {
   const userId = await requireUserId(request);
   const url = new URL(request.url);
   const pathname = url.pathname;
 
-  const childListItems = await getChildListItems({ userId });
+  const user = await getUserById(userId);
+  const children = await getAllChildren();
+
+  const adminChildListItems = { ...user, children };
+
+  const childListItems =
+    user?.role.name === "Admin"
+      ? adminChildListItems
+      : await getChildListItems(userId);
+
   return json({ childListItems, pathname });
 };
 
@@ -23,15 +36,15 @@ export default function RegistrantsPage() {
   const data = useLoaderData<typeof loader>();
   const user = useUser();
 
-  const filteredItems = data.childListItems.filter((child) => {
-    const isMatchedSearchTerm = child.registrant
+  const filteredItems = data.childListItems?.children.filter((child) => {
+    const isMatchedSearchTerm = child.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     if (statusFilter === "all") return isMatchedSearchTerm;
     if (statusFilter === "in")
-      return isMatchedSearchTerm && child.status === "in";
+      return isMatchedSearchTerm && child.checkedIn === true;
     if (statusFilter === "out")
-      return isMatchedSearchTerm && child.status === "out";
+      return isMatchedSearchTerm && child.checkedIn === false;
     return isMatchedSearchTerm;
   });
 
@@ -53,7 +66,7 @@ export default function RegistrantsPage() {
             Registrations
           </Link>
         </h1>
-        <p className="hidden md:block">{user.email}</p>
+        <p className="hidden md:block">Signed In User: {user.name}</p>
         <Form action="/logout" method="post">
           <button
             type="submit"
@@ -73,30 +86,33 @@ export default function RegistrantsPage() {
           >
             + New Registration
           </Link>
-          <Link
-            to="scan"
-            reloadDocument
-            className="block p-4 text-xl text-blue-500"
-          >
-            Scan
-          </Link>
-          <div className="flex items-center justify-between p-4 text-xl text-blue-500">
-            <label htmlFor="statusFilter" className="mr-2">
-              Status:
-            </label>
-            <select
-              id="statusFilter"
-              className="rounded-md border border-gray-300 px-2 py-1 text-gray-900"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">All</option>
-              <option value="in">In</option>
-              <option value="out">Out</option>
-            </select>
-          </div>
+          {user.role === "admin" && (
+            <>
+              <Link
+                to="scan"
+                reloadDocument
+                className="block p-4 text-xl text-blue-500"
+              >
+                Scan
+              </Link>
+              <div className="flex items-center justify-between p-4 text-xl text-blue-500">
+                <label htmlFor="statusFilter" className="mr-2">
+                  Status:
+                </label>
+                <select
+                  id="statusFilter"
+                  className="rounded-md border border-gray-300 px-2 py-1 text-gray-900"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="">All</option>
+                  <option value="in">In</option>
+                  <option value="out">Out</option>
+                </select>
+              </div>
+            </>
+          )}
           <hr />
-
           <div className="hidden sm:block">
             <div className="flex items-center">
               <input
@@ -115,11 +131,11 @@ export default function RegistrantsPage() {
                 </button>
               )}
             </div>
-            {filteredItems.length === 0 ? (
+            {filteredItems?.length === 0 ? (
               <p className="p-4">No registrants</p>
             ) : (
               <ol className="sm:mt-4">
-                {filteredItems.map((child) => (
+                {filteredItems?.map((child) => (
                   <li key={child.id}>
                     <NavLink
                       className={({ isActive }) =>
@@ -129,14 +145,13 @@ export default function RegistrantsPage() {
                       }
                       to={child.id}
                     >
-                      📝 {child.registrant}
+                      📝 {child.name}
                     </NavLink>
                   </li>
                 ))}
               </ol>
             )}
           </div>
-
           {pathname === "/registrants" && (
             <div className="block sm:hidden">
               <div className="flex items-center">
@@ -157,11 +172,11 @@ export default function RegistrantsPage() {
                 )}
               </div>
 
-              {filteredItems.length === 0 ? (
+              {filteredItems?.length === 0 ? (
                 <p className="p-4">No registrants</p>
               ) : (
                 <ol className="sm:mt-4">
-                  {filteredItems.map((child) => (
+                  {filteredItems?.map((child) => (
                     <li key={child.id}>
                       <NavLink
                         reloadDocument
@@ -172,7 +187,7 @@ export default function RegistrantsPage() {
                         }
                         to={child.id}
                       >
-                        📝 {child.registrant}
+                        📝 {child.name}
                       </NavLink>
                     </li>
                   ))}

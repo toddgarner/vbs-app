@@ -3,22 +3,46 @@ import bcrypt from "bcryptjs";
 
 import { prisma } from "~/db.server";
 
-export type { User } from "@prisma/client";
-
 export async function getUserById(id: User["id"]) {
-  return prisma.user.findUnique({ where: { id } });
+  return prisma.user.findUnique({
+    where: { id },
+    include: {
+      role: true,
+      children: true,
+    },
+  });
 }
 
 export async function getUserByEmail(email: User["email"]) {
-  return prisma.user.findUnique({ where: { email } });
+  return prisma.user.findUnique({
+    where: { email },
+    include: {
+      role: true,
+      children: true,
+    },
+  });
 }
 
-export async function createUser(email: User["email"], password: string) {
+export async function createUser(
+  email: User["email"],
+  password: string,
+  roleId: number,
+  phone: User["phone"],
+  name: User["name"]
+) {
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  const role = await prisma.role.findUnique({ where: { id: roleId } });
+  if (!role) {
+    throw new Error(`Role with ID ${roleId} does not exist`);
+  }
 
   return prisma.user.create({
     data: {
       email,
+      phone,
+      name,
+      roleId,
       password: {
         create: {
           hash: hashedPassword,
