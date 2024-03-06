@@ -125,13 +125,14 @@ export default function NewNotePage() {
   useEffect(() => {
     if (actionData?.errors?.name) {
       nameRef.current?.focus();
-    } else if (actionData?.errors?.registrant) {
+    } else if (actionData?.errors?.name) {
       ageRef.current?.focus();
     } else if (actionData?.errors?.age) {
       gradeRef.current?.focus();
-    } else if (actionData?.errors?.phone) {
-      medicalRef.current?.focus();
     }
+    // else if (actionData?.errors?.medical) {
+    //   medicalRef.current?.focus();
+    // }
   }, [actionData]);
 
   return (

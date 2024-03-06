@@ -71,6 +71,7 @@ export const action = async ({ request }: ActionArgs) => {
       {
         errors: {
           email: null,
+          password: null,
           registrant: null,
           parent: null,
           age: null,
@@ -85,6 +86,7 @@ export const action = async ({ request }: ActionArgs) => {
       {
         errors: {
           email: null,
+          password: null,
           registrant: null,
           parent: null,
           age: null,
