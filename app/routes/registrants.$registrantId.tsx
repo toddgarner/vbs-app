@@ -137,6 +137,8 @@ export default function ChildDetailsPage() {
 
         <Form method="post">
           <input type="hidden" name="registrantId" value={data.child.id} />
+          <input type="hidden" name="qrcode" value={data.child.qrcode} />
+
           <button
             type="submit"
             name="_action"
