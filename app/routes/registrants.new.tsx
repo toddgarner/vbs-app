@@ -167,7 +167,7 @@ export default function NewNotePage() {
         </div>
 
         <div>
-          <label className="flex w-16 flex-col gap-1">
+          <label className="flex w-32 flex-col gap-1">
             <span>Child Age: </span>
             <input
               ref={ageRef}
@@ -188,12 +188,13 @@ export default function NewNotePage() {
         </div>
 
         <div>
-          <label className="flex w-full flex-col gap-1">
+          <label className="flex w-32 flex-col gap-1">
             <span>Grade: </span>
             <input
               ref={gradeRef}
               name="grade"
-              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              maxLength={2}
+              className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             />
           </label>
           {actionData?.errors?.grade ? (
@@ -204,21 +205,28 @@ export default function NewNotePage() {
         </div>
 
         <div>
-          <label className="flex w-full flex-col gap-1">
-            <span>Medical Concerns / Allergies: </span>
-            <input
-              ref={medicalRef}
-              name="medical"
-              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-            />
+          <label className="flex w-1/2 flex-col gap-1">
+            <span>T-Shirt Size: </span>
+            <select
+              name="tshirtSize"
+              className="w-1/2 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            >
+              <option value="">Select size</option>
+              <option value="XS">X-Small</option>
+              <option value="S">Small</option>
+              <option value="M">Medium</option>
+              <option value="L">Large</option>
+              <option value="XL">X-Large</option>
+            </select>
           </label>
         </div>
 
         <div>
           <label className="flex w-full flex-col gap-1">
-            <span>T-Shirt Size: </span>
+            <span>Medical Concerns / Allergies: </span>
             <input
-              name="tshirtSize"
+              ref={medicalRef}
+              name="medical"
               className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             />
           </label>
@@ -243,36 +251,44 @@ export default function NewNotePage() {
           </label>
         </div>
 
-        <div>
-          <label className="flex w-full flex-col gap-1">
-            <span>Picture Permission: </span>
+        <div className="grid gap-2">
+          <label
+            className="grid grid-cols-2 items-center gap-1"
+            style={{ gridTemplateColumns: "3fr 1fr" }}
+          >
+            <span>
+              Please unselect if you do not give permission for your child's
+              picture to be used:{" "}
+            </span>
             <input
               name="picPermission"
               type="checkbox"
               defaultChecked={true}
-              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              className="justify-self-center rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              style={{ transform: "scale(1.5)" }}
             />
           </label>
-        </div>
 
-        <div>
-          <label className="flex w-full flex-col gap-1">
-            <span>Transportation: </span>
+          <label
+            className="grid grid-cols-2 items-center gap-1"
+            style={{ gridTemplateColumns: "3fr 1fr" }}
+          >
+            <span>Please select if your child needs transportation: </span>
             <input
               name="transportation"
               type="checkbox"
               defaultChecked={false}
-              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              className="justify-self-center rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              style={{ transform: "scale(1.5)" }}
             />
           </label>
         </div>
-
-        <div className="text-right">
+        <div className="mt-2 text-center">
           <button
             type="submit"
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="w-64 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
-            Save
+            Submit
           </button>
         </div>
       </Form>

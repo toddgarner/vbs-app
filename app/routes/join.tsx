@@ -72,11 +72,8 @@ export const action = async ({ request }: ActionArgs) => {
         errors: {
           email: null,
           password: null,
-          registrant: null,
-          parent: null,
           age: null,
           phone: "Phone is required",
-          dob: null,
         },
       },
       { status: 400 }
@@ -87,11 +84,8 @@ export const action = async ({ request }: ActionArgs) => {
         errors: {
           email: null,
           password: null,
-          registrant: null,
-          parent: null,
           age: null,
           phone: "Phone is invalid",
-          dob: null,
         },
       },
       { status: 400 }
@@ -147,12 +141,18 @@ export default function Join() {
   const actionData = useActionData<typeof action>();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (actionData?.errors?.email) {
       emailRef.current?.focus();
     } else if (actionData?.errors?.password) {
       passwordRef.current?.focus();
+    } else if (actionData?.errors?.phone) {
+      phoneRef.current?.focus();
+    } else if (actionData?.errors?.name) {
+      nameRef.current?.focus();
     }
   }, [actionData]);
 
@@ -197,8 +197,9 @@ export default function Join() {
             </label>
             <div className="mt-1">
               <input
-                id="password"
                 ref={passwordRef}
+                id="password"
+                required
                 name="password"
                 type="password"
                 autoComplete="new-password"
@@ -223,12 +224,19 @@ export default function Join() {
             </label>
             <div className="mt-1">
               <input
+                ref={phoneRef}
                 id="phone"
+                required
                 name="phone"
                 type="tel"
                 autoComplete="tel"
                 className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
               />
+              {actionData?.errors?.phone ? (
+                <div className="pt-1 text-red-700" id="phone-error">
+                  {actionData.errors.phone}
+                </div>
+              ) : null}
             </div>
           </div>
           <div>
@@ -240,7 +248,9 @@ export default function Join() {
             </label>
             <div className="mt-1">
               <input
+                ref={nameRef}
                 id="name"
+                required
                 name="name"
                 type="text"
                 autoComplete="name"
