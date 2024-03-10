@@ -10,9 +10,9 @@ import type { Child } from "@prisma/client";
 
 const awsKey = process.env.AWS_KEY || "";
 const awsSecret = process.env.AWS_SECRET || "";
-const awsBucketName = process.env.AWS_BUCKET_NAME || "";
+export const awsBucketName = process.env.AWS_BUCKET_NAME || "";
 
-const awsConfig = {
+export const awsConfig = {
   region: "us-east-1",
   credentials: {
     accessKeyId: awsKey,

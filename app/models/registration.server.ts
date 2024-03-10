@@ -27,6 +27,7 @@ export function createChild({
   grade,
   medical,
   qrcode,
+  photoUrl,
   picPermission,
   tshirtSize,
   transportation,
@@ -40,6 +41,7 @@ export function createChild({
   | "grade"
   | "medical"
   | "qrcode"
+  | "photoUrl"
   | "picPermission"
   | "tshirtSize"
   | "transportation"
@@ -56,6 +58,7 @@ export function createChild({
       grade,
       medical,
       qrcode,
+      photoUrl,
       picPermission,
       tshirtSize,
       transportation,
@@ -75,6 +78,7 @@ export async function updateChild(
   userId: User["id"],
   medical: string,
   qrcode: string,
+  photoUrl: string,
   picPermission: boolean,
   tshirtSize: string,
   transportation: boolean,
@@ -99,6 +103,7 @@ export async function updateChild(
       userId,
       medical,
       qrcode,
+      photoUrl,
       picPermission,
       tshirtSize,
       transportation,

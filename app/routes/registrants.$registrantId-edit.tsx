@@ -21,58 +21,31 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 export const action = async ({ request }: ActionArgs) => {
   const userId = await requireUserId(request);
   const formData = await request.formData();
-  const registrant = formData.get("registrant");
-  const email = formData.get("email");
+  const name = formData.get("name");
   const age = formData.get("age")?.toString() || "";
-  const phone = formData.get("phone");
+  const grade = formData.get("grade")?.toString() || "";
   const childId = formData.get("childId")?.toString() || "";
   const qrcode = formData.get("qrcode")?.toString() || "";
-  const dobForm = formData.get("dob")?.toString();
   const medical = formData.get("medical")?.toString() || "";
+  const tshirtSize = formData.get("tshirtSize")?.toString() || "";
+  const picPermission = formData.get("picPermission") === "on" ? true : false;
+  const transportation = formData.get("transportation") === "on" ? true : false;
+  const emergencyContactName =
+    formData.get("emergencyContactName")?.toString() || "";
+  const emergencyContactPhone =
+    formData.get("emergencyContactPhone")?.toString() || "";
 
-  let dob = new Date();
+  const guardianId = userId;
 
-  if (dobForm) {
-    dob = new Date(dobForm);
-  }
-
-  if (typeof registrant !== "string" || registrant.length === 0) {
+  if (typeof name !== "string" || name.length === 0) {
     return json(
       {
         errors: {
-          email: null,
-          registrant: "Registrant is required",
+          name: "Child name is required",
           age: null,
-          phone: null,
-          dob: null,
-        },
-      },
-      { status: 400 }
-    );
-  }
-
-  if (typeof email !== "string" || email.length === 0) {
-    return json(
-      {
-        errors: {
-          email: "Email is required",
-          registrant: null,
-          age: null,
-          phone: null,
-          dob: null,
-        },
-      },
-      { status: 400 }
-    );
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json(
-      {
-        errors: {
-          email: "Email is invalid",
-          registrant: null,
-          age: null,
-          phone: null,
-          dob: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: null,
         },
       },
       { status: 400 }
@@ -85,11 +58,11 @@ export const action = async ({ request }: ActionArgs) => {
     return json(
       {
         errors: {
-          email: null,
-          registrant: null,
+          name: null,
           age: "Age is required",
-          phone: null,
-          dob: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: null,
         },
       },
       { status: 400 }
@@ -98,11 +71,44 @@ export const action = async ({ request }: ActionArgs) => {
     return json(
       {
         errors: {
-          email: null,
-          registrant: null,
+          name: null,
           age: "Age must be a number",
-          phone: null,
-          dob: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  if (typeof grade !== "string" || grade.length === 0) {
+    return json(
+      {
+        errors: {
+          name: null,
+          age: null,
+          grade: "Grade is required",
+          emergencyContactName: null,
+          emergencyContactPhone: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  if (
+    typeof emergencyContactName !== "string" ||
+    emergencyContactName.length === 0
+  ) {
+    return json(
+      {
+        errors: {
+          name: null,
+          age: null,
+          grade: null,
+          emergencyContactName: "Emergency contact is required",
+          emergencyContactPhone: null,
         },
       },
       { status: 400 }
@@ -112,28 +118,31 @@ export const action = async ({ request }: ActionArgs) => {
   const phoneRegex: RegExp =
     /^(\([0-9]{3}\)|[0-9]{3})[- ]?[0-9]{3}[- ]?[0-9]{4}$/gm;
 
-  if (typeof phone !== "string" || phone.length === 0) {
+  if (
+    typeof emergencyContactPhone !== "string" ||
+    emergencyContactPhone.length === 0
+  ) {
     return json(
       {
         errors: {
-          email: null,
-          registrant: null,
+          name: null,
           age: null,
-          phone: "Phone is required",
-          dob: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: "Emergency contact phone is required",
         },
       },
       { status: 400 }
     );
-  } else if (!phoneRegex.test(phone)) {
+  } else if (!phoneRegex.test(emergencyContactPhone)) {
     return json(
       {
         errors: {
-          email: null,
-          registrant: null,
+          name: null,
           age: null,
-          phone: "Phone is invalid",
-          dob: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: "Emergency contact phone is invalid",
         },
       },
       { status: 400 }
@@ -145,17 +154,18 @@ export const action = async ({ request }: ActionArgs) => {
   if (child) {
     await updateChild(
       child.id,
-      child.name,
-      child.age,
-      child.grade,
+      name,
+      ageInt,
+      grade,
       child.userId,
-      child.medical,
+      medical,
       qrcode,
-      child.picPermission,
-      child.tshirtSize,
-      child.transportation,
-      child.emergencyContactName,
-      child.emergencyContactPhone,
+      child.photoUrl,
+      picPermission,
+      tshirtSize,
+      transportation,
+      emergencyContactName,
+      emergencyContactPhone,
       child.checkedIn
     );
   }
@@ -170,31 +180,28 @@ export const action = async ({ request }: ActionArgs) => {
 export default function NewNotePage() {
   const data = useLoaderData<AppData>();
   const actionData = useActionData<typeof action>();
-  const registrantRef = useRef<HTMLInputElement>(null) as any;
-  const emailRef = useRef<HTMLTextAreaElement>(null) as any;
+  const nameRef = useRef<HTMLInputElement>(null) as any;
   const ageRef = useRef<HTMLTextAreaElement>(null) as any;
-  const phoneRef = useRef<HTMLTextAreaElement>(null) as any;
-  const dobRef = useRef<HTMLTextAreaElement>(null) as any;
+  const gradeRef = useRef<HTMLTextAreaElement>(null) as any;
   const medicalRef = useRef<HTMLTextAreaElement>(null) as any;
+  const emergencyContactNameRef = useRef<HTMLTextAreaElement>(null) as any;
+  const emergencyContactPhoneRef = useRef<HTMLTextAreaElement>(null) as any;
 
   useEffect(() => {
-    if (actionData?.errors?.registrant) {
-      registrantRef.current?.focus();
-    } else if (actionData?.errors?.registrant) {
-      emailRef.current?.focus();
-    } else if (actionData?.errors?.age) {
+    if (actionData?.errors?.name) {
+      nameRef.current?.focus();
+    } else if (actionData?.errors?.name) {
       ageRef.current?.focus();
-    } else if (actionData?.errors?.phone) {
-      phoneRef.current?.focus();
+    } else if (actionData?.errors?.age) {
+      gradeRef.current?.focus();
     }
+    // else if (actionData?.errors?.medical) {
+    //   medicalRef.current?.focus();
+    // }
   }, [actionData]);
 
   return (
-    <div>
-      <p>{data.child.user.name}</p>
-      <p>{data.child.user.phone}</p>
-      <p>{data.child.user.email}</p>
-
+    <div className="mx-auto w-4/5 text-lg font-semibold text-gray-700">
       <Form
         method="post"
         style={{
@@ -206,53 +213,34 @@ export default function NewNotePage() {
       >
         <div>
           <label className="flex w-full flex-col gap-1">
-            <span>Child: </span>
+            <span>Child Name: </span>
             <input
-              ref={registrantRef}
+              ref={nameRef}
+              name="name"
+              required
               defaultValue={data.child.name}
-              name="registrant"
               className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
-              aria-invalid={actionData?.errors?.registrant ? true : undefined}
+              aria-invalid={actionData?.errors?.name ? true : undefined}
               aria-errormessage={
-                actionData?.errors?.registrant ? "registrant-error" : undefined
+                actionData?.errors?.name ? "name-error" : undefined
               }
             />
           </label>
-          {actionData?.errors?.registrant ? (
-            <div className="pt-1 text-red-700" id="registrant-error">
-              {actionData.errors.registrant}
+          {actionData?.errors?.name ? (
+            <div className="pt-1 text-red-700" id="name-error">
+              {actionData.errors.name}
             </div>
           ) : null}
         </div>
 
         <div>
-          <label className="flex w-full flex-col gap-1">
-            <span>Email: </span>
-            <input
-              ref={emailRef}
-              defaultValue={data.child.email}
-              name="email"
-              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-              aria-invalid={actionData?.errors?.email ? true : undefined}
-              aria-errormessage={
-                actionData?.errors?.email ? "email-error" : undefined
-              }
-            />
-          </label>
-          {actionData?.errors?.email ? (
-            <div className="pt-1 text-red-700" id="email-error">
-              {actionData.errors.email}
-            </div>
-          ) : null}
-        </div>
-
-        <div>
-          <label className="flex w-16 flex-col gap-1">
-            <span>Age: </span>
+          <label className="flex w-32 flex-col gap-1">
+            <span>Child Age: </span>
             <input
               ref={ageRef}
               name="age"
-              defaultValue={data.child.age}
+              required
+              defaultValue={+data.child.age}
               maxLength={2}
               className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
               aria-invalid={actionData?.errors?.age ? true : undefined}
@@ -268,50 +256,135 @@ export default function NewNotePage() {
           ) : null}
         </div>
 
-        {/* <div>
-        <label className="flex w-64 flex-col gap-1">
-        <span>DOB: </span>
-        <input
-        ref={dobRef}
-        name="dob"
-        type="date"
-        defaultValue={data.child.dob.substring(0, 10)}
-        className="w-64 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
-        aria-invalid={actionData?.errors?.dob ? true : undefined}
-        aria-errormessage={
-          actionData?.errors?.age ? "dob-error" : undefined
-        }
-        />
-        </label>
-        {actionData?.errors?.dob ? (
-          <div className="pt-1 text-red-700" id="dob-error">
-          {actionData.errors.dob}
-          </div>
+        <div>
+          <label className="flex w-32 flex-col gap-1">
+            <span>Grade: </span>
+            <input
+              ref={gradeRef}
+              name="grade"
+              required
+              defaultValue={data.child.grade}
+              maxLength={2}
+              className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            />
+          </label>
+          {actionData?.errors?.grade ? (
+            <div className="pt-1 text-red-700" id="grade-error">
+              {actionData.errors.grade}
+            </div>
           ) : null}
-        </div> */}
+        </div>
+
+        <div>
+          <label className="flex w-1/2 flex-col gap-1">
+            <span>T-Shirt Size: </span>
+            <select
+              name="tshirtSize"
+              required
+              defaultValue={data.child.tshirtSize}
+              className="w-1/2 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            >
+              <option value="">Select size</option>
+              <option value="XS">X-Small</option>
+              <option value="S">Small</option>
+              <option value="M">Medium</option>
+              <option value="L">Large</option>
+              <option value="XL">X-Large</option>
+            </select>
+          </label>
+        </div>
 
         <div>
           <label className="flex w-full flex-col gap-1">
-            <span>Medical Concerns: </span>
+            <span>Medical Concerns / Allergies: </span>
             <input
               ref={medicalRef}
-              defaultValue={data.child.medical}
               name="medical"
+              defaultValue={data.child.medical}
               className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             />
           </label>
         </div>
 
-        <div className="text-right">
+        <div>
+          <label className="flex w-full flex-col gap-1">
+            <span>Emergency Contact Name: </span>
+            <input
+              name="emergencyContactName"
+              ref={emergencyContactNameRef}
+              required
+              defaultValue={data.child.emergencyContactName}
+              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            />
+          </label>
+          {actionData?.errors?.emergencyContactName ? (
+            <div className="pt-1 text-red-700" id="grade-error">
+              {actionData.errors.emergencyContactName}
+            </div>
+          ) : null}
+        </div>
+        <div>
+          <label className="flex w-full flex-col gap-1">
+            <span>Emergency Contact Phone: </span>
+            <input
+              name="emergencyContactPhone"
+              ref={emergencyContactPhoneRef}
+              required
+              defaultValue={data.child.emergencyContactPhone}
+              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+            />
+          </label>
+          {actionData?.errors?.emergencyContactPhone ? (
+            <div className="pt-1 text-red-700" id="grade-error">
+              {actionData.errors.emergencyContactPhone}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-2">
+          <label
+            className="grid grid-cols-2 items-center gap-1"
+            style={{ gridTemplateColumns: "3fr 1fr" }}
+          >
+            <span>
+              Please unselect if you do not give permission for your child's
+              picture to be used:{" "}
+            </span>
+            <input
+              name="picPermission"
+              type="checkbox"
+              defaultChecked={data.child.picPermission}
+              className="justify-self-center rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              style={{ transform: "scale(1.5)" }}
+            />
+          </label>
+
+          <label
+            className="grid grid-cols-2 items-center gap-1"
+            style={{ gridTemplateColumns: "3fr 1fr" }}
+          >
+            <span>Please select if your child needs transportation: </span>
+            <input
+              name="transportation"
+              type="checkbox"
+              defaultChecked={data.child.transportation}
+              className="justify-self-center rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              style={{ transform: "scale(1.5)" }}
+            />
+          </label>
+        </div>
+        <div className="mt-2 text-center">
           <button
             type="submit"
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+            className="w-64 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
           >
-            Save
+            Submit
           </button>
         </div>
+
         <input type="hidden" name="childId" value={data.child.id} />
         <input type="hidden" name="qrcode" value={data.child.qrcode} />
+        <input type="hidden" name="photoUrl" value={data.child.photoUrl} />
       </Form>
     </div>
   );

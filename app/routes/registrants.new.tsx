@@ -3,13 +3,9 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import { createQRCode } from "~/models/aws.server";
-import { useUser } from "~/utils";
-
-import {
-  createChild,
-  getChild,
-  updateChild,
-} from "~/models/registration.server";
+import { saveImage } from "~/models/image.server";
+import * as crypto from "crypto";
+import { createChild, updateChild } from "~/models/registration.server";
 import { requireUserId } from "~/session.server";
 
 export const action = async ({ request }: ActionArgs) => {
@@ -20,13 +16,23 @@ export const action = async ({ request }: ActionArgs) => {
   const grade = formData.get("grade")?.toString() || "";
   const medical = formData.get("medical")?.toString() || "";
   const tshirtSize = formData.get("tshirtSize")?.toString() || "";
-  const picPermission = formData.get("picPermission") === "true" ? true : false;
-  const transportation =
-    formData.get("transportation") === "true" ? true : false;
+  const picPermission = formData.get("picPermission") === "on" ? true : false;
+  const transportation = formData.get("transportation") === "on" ? true : false;
   const emergencyContactName =
     formData.get("emergencyContactName")?.toString() || "";
   const emergencyContactPhone =
     formData.get("emergencyContactPhone")?.toString() || "";
+  const photo = formData.get("photo") as File;
+
+  let photoUrl = "";
+
+  const photoName = crypto.randomUUID() + ".png";
+
+  if (photo) {
+    const arrayBuffer = await photo.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    photoUrl = await saveImage(photoName, buffer);
+  }
 
   const guardianId = userId;
 
@@ -35,10 +41,10 @@ export const action = async ({ request }: ActionArgs) => {
       {
         errors: {
           name: "Child name is required",
-          guardianId: null,
           age: null,
           grade: null,
-          dob: null,
+          emergencyContactName: null,
+          emergencyContactPhone: null,
         },
       },
       { status: 400 }
@@ -52,10 +58,10 @@ export const action = async ({ request }: ActionArgs) => {
       {
         errors: {
           name: null,
-          guardianId: null,
           age: "Age is required",
           grade: null,
-          dob: null,
+          emergencyContactName: null,
+          emergencyContactPhone: null,
         },
       },
       { status: 400 }
@@ -65,10 +71,77 @@ export const action = async ({ request }: ActionArgs) => {
       {
         errors: {
           name: null,
-          guardianId: null,
           age: "Age must be a number",
           grade: null,
-          dob: null,
+          emergencyContactName: null,
+          emergencyContactPhone: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  if (typeof grade !== "string" || grade.length === 0) {
+    return json(
+      {
+        errors: {
+          name: null,
+          age: null,
+          grade: "Grade is required",
+          emergencyContactName: null,
+          emergencyContactPhone: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  if (
+    typeof emergencyContactName !== "string" ||
+    emergencyContactName.length === 0
+  ) {
+    return json(
+      {
+        errors: {
+          name: null,
+          age: null,
+          grade: null,
+          emergencyContactName: "Emergency contact is required",
+          emergencyContactPhone: null,
+        },
+      },
+      { status: 400 }
+    );
+  }
+
+  const phoneRegex: RegExp =
+    /^(\([0-9]{3}\)|[0-9]{3})[- ]?[0-9]{3}[- ]?[0-9]{4}$/gm;
+
+  if (
+    typeof emergencyContactPhone !== "string" ||
+    emergencyContactPhone.length === 0
+  ) {
+    return json(
+      {
+        errors: {
+          name: null,
+          age: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: "Emergency contact phone is required",
+        },
+      },
+      { status: 400 }
+    );
+  } else if (!phoneRegex.test(emergencyContactPhone)) {
+    return json(
+      {
+        errors: {
+          name: null,
+          age: null,
+          grade: null,
+          emergencyContactName: null,
+          emergencyContactPhone: "Emergency contact phone is invalid",
         },
       },
       { status: 400 }
@@ -81,6 +154,7 @@ export const action = async ({ request }: ActionArgs) => {
     grade,
     medical,
     qrcode: "",
+    photoUrl,
     tshirtSize,
     picPermission,
     transportation,
@@ -101,6 +175,7 @@ export const action = async ({ request }: ActionArgs) => {
       child.userId,
       child.medical,
       qrcode,
+      child.photoUrl,
       child.picPermission,
       child.tshirtSize,
       child.transportation,
@@ -119,8 +194,8 @@ export default function NewNotePage() {
   const ageRef = useRef<HTMLTextAreaElement>(null) as any;
   const gradeRef = useRef<HTMLTextAreaElement>(null) as any;
   const medicalRef = useRef<HTMLTextAreaElement>(null) as any;
-
-  const user = useUser();
+  const emergencyContactNameRef = useRef<HTMLTextAreaElement>(null) as any;
+  const emergencyContactPhoneRef = useRef<HTMLTextAreaElement>(null) as any;
 
   useEffect(() => {
     if (actionData?.errors?.name) {
@@ -135,10 +210,27 @@ export default function NewNotePage() {
     // }
   }, [actionData]);
 
+  // function validateFile(event: React.ChangeEvent<HTMLInputElement>) {
+  //   const file = event.target?.files?[0];
+  //   const fileSize = file.size / 1024 / 1024; // size in MB
+  //   const fileType = file.type;
+
+  //   if (fileSize > 2) {
+  //     // if file size is more than 2MB
+  //     alert("The file is too large. Please upload a file smaller than 2MB.");
+  //     event.target.value = ""; // reset the file input
+  //   } else if (!fileType.startsWith("image/")) {
+  //     // if file is not an image
+  //     alert("The file is not an image. Please upload an image file.");
+  //     event.target.value = ""; // reset the file input
+  //   }
+  // }
+
   return (
     <div className="mx-auto w-4/5 text-lg font-semibold text-gray-700">
       <Form
         method="post"
+        encType="multipart/form-data"
         style={{
           display: "flex",
           flexDirection: "column",
@@ -152,6 +244,7 @@ export default function NewNotePage() {
             <input
               ref={nameRef}
               name="name"
+              required
               className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
               aria-invalid={actionData?.errors?.name ? true : undefined}
               aria-errormessage={
@@ -172,6 +265,7 @@ export default function NewNotePage() {
             <input
               ref={ageRef}
               name="age"
+              required
               maxLength={2}
               className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
               aria-invalid={actionData?.errors?.age ? true : undefined}
@@ -193,6 +287,7 @@ export default function NewNotePage() {
             <input
               ref={gradeRef}
               name="grade"
+              required
               maxLength={2}
               className="w-16 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             />
@@ -209,6 +304,7 @@ export default function NewNotePage() {
             <span>T-Shirt Size: </span>
             <select
               name="tshirtSize"
+              required
               className="w-1/2 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             >
               <option value="">Select size</option>
@@ -237,18 +333,32 @@ export default function NewNotePage() {
             <span>Emergency Contact Name: </span>
             <input
               name="emergencyContactName"
+              ref={emergencyContactNameRef}
+              required
               className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             />
           </label>
+          {actionData?.errors?.emergencyContactName ? (
+            <div className="pt-1 text-red-700" id="grade-error">
+              {actionData.errors.emergencyContactName}
+            </div>
+          ) : null}
         </div>
         <div>
           <label className="flex w-full flex-col gap-1">
             <span>Emergency Contact Phone: </span>
             <input
               name="emergencyContactPhone"
+              ref={emergencyContactPhoneRef}
+              required
               className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             />
           </label>
+          {actionData?.errors?.emergencyContactPhone ? (
+            <div className="pt-1 text-red-700" id="grade-error">
+              {actionData.errors.emergencyContactPhone}
+            </div>
+          ) : null}
         </div>
 
         <div className="grid gap-2">
@@ -280,6 +390,18 @@ export default function NewNotePage() {
               defaultChecked={false}
               className="justify-self-center rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
               style={{ transform: "scale(1.5)" }}
+            />
+          </label>
+        </div>
+        <div>
+          <label className="flex w-32 flex-col gap-1">
+            <span>Child Photo: </span>
+            <input
+              name="photo"
+              type="file"
+              accept="image/*"
+              className="w-96 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              // onChange={validateFile}
             />
           </label>
         </div>
