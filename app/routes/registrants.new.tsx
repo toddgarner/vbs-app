@@ -308,11 +308,15 @@ export default function NewNotePage() {
               className="w-1/2 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
             >
               <option value="">Select size</option>
-              <option value="XS">X-Small</option>
-              <option value="S">Small</option>
-              <option value="M">Medium</option>
-              <option value="L">Large</option>
-              <option value="XL">X-Large</option>
+              <option value="YXS">Youth X-Small</option>
+              <option value="YS">Youth Small</option>
+              <option value="YM">Youth Medium</option>
+              <option value="YL">Youth Large</option>
+              <option value="YXL">Youth X-Large</option>
+              <option value="AS">Adult Small</option>
+              <option value="AM">Adult Medium</option>
+              <option value="AL">Adult Large</option>
+              <option value="AXL">Adult X-Large</option>
             </select>
           </label>
         </div>
