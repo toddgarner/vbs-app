@@ -290,10 +290,11 @@ export default function NewNotePage() {
               <option value="YM">Youth Medium</option>
               <option value="YL">Youth Large</option>
               <option value="YXL">Youth X-Large</option>
-              <option value="AS">Adult Small</option>
-              <option value="AM">Adult Medium</option>
-              <option value="AL">Adult Large</option>
-              <option value="AXL">Adult X-Large</option>
+              <option value="S">Adult Small</option>
+              <option value="M">Adult Medium</option>
+              <option value="L">Adult Large</option>
+              <option value="XL">Adult X-Large</option>
+              <option value="XXL">Adult XX-Large</option>
             </select>
           </label>
         </div>
