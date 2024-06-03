@@ -86,7 +86,7 @@ export default function RegistrantsPage() {
           >
             + New Registration
           </Link>
-          {user.role === "admin" && (
+          {user.role.name === "Admin" && (
             <>
               <Link
                 to="scan"
