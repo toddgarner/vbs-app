@@ -3,9 +3,10 @@ import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import invariant from "tiny-invariant";
-
+import * as crypto from "crypto";
 import { getChild, updateChild } from "~/models/registration.server";
 import { requireUserId } from "~/session.server";
+import { saveImage } from "~/models/image.server";
 
 export const loader = async ({ params, request }: LoaderArgs) => {
   const userId = await requireUserId(request);
@@ -34,6 +35,17 @@ export const action = async ({ request }: ActionArgs) => {
     formData.get("emergencyContactName")?.toString() || "";
   const emergencyContactPhone =
     formData.get("emergencyContactPhone")?.toString() || "";
+  const photo = formData.get("photo") as File;
+
+  let photoUrl = "";
+
+  const photoName = crypto.randomUUID() + ".png";
+
+  if (photo) {
+    const arrayBuffer = await photo.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    photoUrl = await saveImage(photoName, buffer);
+  }
 
   const guardianId = userId;
 
@@ -151,6 +163,8 @@ export const action = async ({ request }: ActionArgs) => {
 
   const child = await getChild(childId);
 
+  const childPhoto = photoUrl ? photoUrl : child.photoUrl;
+
   if (child) {
     await updateChild(
       child.id,
@@ -160,7 +174,7 @@ export const action = async ({ request }: ActionArgs) => {
       child.userId,
       medical,
       qrcode,
-      child.photoUrl,
+      childPhoto,
       picPermission,
       tshirtSize,
       transportation,
@@ -204,6 +218,7 @@ export default function NewNotePage() {
     <div className="mx-auto w-4/5 text-lg font-semibold text-gray-700">
       <Form
         method="post"
+        encType="multipart/form-data"
         style={{
           display: "flex",
           flexDirection: "column",
@@ -375,6 +390,18 @@ export default function NewNotePage() {
               defaultChecked={data.child.transportation}
               className="justify-self-center rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
               style={{ transform: "scale(1.5)" }}
+            />
+          </label>
+        </div>
+        <div>
+          <label className="flex w-32 flex-col gap-1">
+            <span>Child Photo: </span>
+            <input
+              name="photo"
+              type="file"
+              accept="image/*"
+              className="w-96 flex-1 rounded-md border-2 border-blue-500 px-3 py-2 text-lg leading-6"
+              // onChange={validateFile}
             />
           </label>
         </div>
