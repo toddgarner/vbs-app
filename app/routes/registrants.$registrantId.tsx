@@ -185,20 +185,6 @@ export default function ChildDetailsPage() {
           Edit
         </Link>
 
-        <Form method="post">
-          <input type="hidden" name="registrantId" value={data.child.id} />
-          <input type="hidden" name="qrcode" value={data.child.qrcode} />
-
-          <button
-            type="submit"
-            name="_action"
-            value="updateChildStatus"
-            className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
-          >
-            {data.child.checkedIn === true ? "Check Out" : "Check In"}
-          </button>
-        </Form>
-
         {data.user?.role?.name === "Admin" && (
           <>
             <Form method="post">
@@ -207,6 +193,14 @@ export default function ChildDetailsPage() {
               <input type="hidden" name="qrcode" value={data.child.qrcode} />
               <input type="hidden" name="email" value={data.child.user.email} />
               <input type="hidden" name="phone" value={data.child.user.phone} />
+              <button
+                type="submit"
+                name="_action"
+                value="updateChildStatus"
+                className="m-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
+              >
+                {data.child.checkedIn === true ? "Check Out" : "Check In"}
+              </button>
               <button
                 type="submit"
                 name="_action"
